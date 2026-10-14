@@ -23,7 +23,9 @@ import browser from "webextension-polyfill";
 
 let isContentHidden = true;
 let siteEnabled = true;
-let hardcoreMode = false;
+// Personal build: these sites can't be disabled and hardcore mode is always on.
+const LOCKED_SITES = ["youtube", "facebook", "twitter"];
+let hardcoreMode = true;
 let countdownInterval = null;
 let countdownSeconds = 600; // 10 minutes
 
@@ -342,8 +344,9 @@ function checkSiteEnabled() {
     storage.sync
       .get([currentSite, "hardcore"])
       .then((result) => {
-        siteEnabled = result[currentSite] !== false;
-        hardcoreMode = result.hardcore === true;
+        siteEnabled =
+          LOCKED_SITES.includes(currentSite) || result[currentSite] !== false;
+        hardcoreMode = true;
         showBody(); // Always show the body
         if (!siteEnabled) {
           showAllContent();
@@ -356,7 +359,7 @@ function checkSiteEnabled() {
         console.error("Error accessing storage:", error);
         showBody(); // Always show the body
         siteEnabled = true;
-        hardcoreMode = false;
+        hardcoreMode = true;
         initializeSite();
       });
   } else {
@@ -1261,7 +1264,7 @@ const storage = chrome.storage || browser.storage;
 storage.onChanged.addListener(function (changes, namespace) {
   console.log("changing site " + namespace + " with changes:", changes);
   for (let key in changes) {
-    if (key === getCurrentSite()) {
+    if (key === getCurrentSite() && !LOCKED_SITES.includes(key)) {
       siteEnabled = changes[key].newValue !== false;
       if (siteEnabled) {
         isContentHidden = true;
@@ -1269,17 +1272,6 @@ storage.onChanged.addListener(function (changes, namespace) {
       } else {
         showAllContent();
         stopCountdown();
-      }
-    }
-    if (key === "hardcore") {
-      hardcoreMode = changes[key].newValue === true;
-      // Remove existing toggle buttons when hardcore mode is enabled
-      if (hardcoreMode) {
-        const buttons = document.querySelectorAll(".algorithm-escape-toggle-container");
-        buttons.forEach((button) => button.remove());
-      } else if (siteEnabled) {
-        // Re-initialize to create toggle buttons when hardcore mode is disabled
-        initializeSite();
       }
     }
   }

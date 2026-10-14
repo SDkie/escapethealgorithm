@@ -87,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const hardcoreEnabled = result.hardcore === true;
         toggles.hardcore.checked = hardcoreEnabled;
         toggles.hardcore.setAttribute("aria-checked", hardcoreEnabled.toString());
+        lockToggles();
         // Load theme setting, or default to system preference.
         let theme = result.theme;
         if (!theme) {
@@ -106,12 +107,27 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   };
 
+  // Personal build: these switches are locked on and can't be changed.
+  const LOCKED_TOGGLES = ["youtube", "facebook", "twitter", "hardcore"];
+  const lockToggles = () => {
+    for (const key of LOCKED_TOGGLES) {
+      const toggle = toggles[key];
+      toggle.checked = true;
+      toggle.disabled = true;
+      toggle.setAttribute("aria-checked", "true");
+      const name = toggle.closest(".site-toggle").querySelector(".site-name");
+      if (!name.textContent.includes("🔒")) name.textContent += " 🔒";
+    }
+  };
+
   // Initialize settings on load.
   loadSettings();
+  lockToggles();
 
   // Add change event listeners for each social media toggle.
   for (const site in toggles) {
     toggles[site].addEventListener("change", function () {
+      if (LOCKED_TOGGLES.includes(site)) return;
       const isChecked = this.checked;
       saveSetting(site, isChecked);
       this.setAttribute("aria-checked", isChecked.toString());

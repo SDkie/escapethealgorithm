@@ -26,7 +26,10 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "ernest@escapethealgorithm.org"
+      "id": "escapethealgorithm@kumarsukhani.dev",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   }
 }

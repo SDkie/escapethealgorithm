@@ -171,3 +171,8 @@ body.light-theme .report-button:hover {
   background-color: #e94560;
   color: #ffffff;
 }
+
+input:disabled + .slider {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
